@@ -1,0 +1,165 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Creating basic backend environment.
+Parameters:
+  EnvName:
+    Description: "Your environment name here"
+    Type: String
+  AuthApiPath:
+    Description: "auth api path"
+    Type: String
+  AuthServiceApiPath:
+    Description: "auth service api path"
+    Type: String
+  AuthServiceApiHost:
+    Description: "auth service api hpst"
+    Type: String
+  AuthServiceApiAccessKey:
+    Description: "auth api access key"
+    Type: String
+  AuthServiceApiSercretAccessKey:
+    Description: "auth api sercret access key"
+    Type: String
+  NotifySource:
+    Description: "email notification source"
+    Type: String
+  StreamApiId:
+    Description: "AI BOX's ID"
+    Type: String
+  StreamApiPw:
+    Description: "AI BOX's password"
+    Type: String
+  AppApiAcmArn:
+    Type: String
+    Default: ""
+  StreamApiAcmArn:
+    Type: String
+    Default: ""
+
+Conditions:
+  NotFeature: !Or
+    - !Equals [!Ref EnvName, "production"]
+    - !Equals [!Ref EnvName, "staging"]
+    - !Equals [!Ref EnvName, "develop"]
+
+Resources:
+  CommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub BI_common-layer-${EnvName}
+      Description: Common Application Resource Layer
+      ContentUri: ./src/layer
+
+  VisitorTrend:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./src/trend/template.yaml
+      Parameters:
+        EnvName: !Sub ${EnvName}
+        layer: !Ref CommonLayer
+
+  VisitorPeak:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./src/peak/template.yaml
+      Parameters:
+        EnvName: !Sub ${EnvName}
+        layer: !Ref CommonLayer
+
+  VisitorAttribute:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./src/attribute/template.yaml
+      Parameters:
+        EnvName: !Sub ${EnvName}
+        layer: !Ref CommonLayer
+
+  NumberPlate:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./src/number_plate/template.yaml
+      Parameters:
+        EnvName: !Sub ${EnvName}
+
+  SIAAnalytics:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./src/stay_in_area_analytics/template.yaml
+      Parameters:
+        EnvName: !Sub ${EnvName}
+        layer: !Ref CommonLayer
+
+  MCAnalytics:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./src/mc_analytics/template.yaml
+      Parameters:
+        EnvName: !Sub ${EnvName}
+        layer: !Ref CommonLayer
+        AuthServiceApiPath: !Sub ${AuthServiceApiPath}
+        AuthServiceApiHost: !Sub ${AuthServiceApiHost}
+        AuthServiceApiAccessKey: !Sub ${AuthServiceApiAccessKey}
+        AuthServiceApiSercretAccessKey: !Sub ${AuthServiceApiSercretAccessKey}
+
+  ReIdentification:
+    Condition: NotFeature
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./resourses/re_identification/template.yaml
+      Parameters:
+        EnvName: !Sub ${EnvName}
+        layer: !Ref CommonLayer
+        AuthServiceApiPath: !Sub ${AuthServiceApiPath}
+        AuthServiceApiHost: !Sub ${AuthServiceApiHost}
+        AuthServiceApiAccessKey: !Sub ${AuthServiceApiAccessKey}
+        AuthServiceApiSercretAccessKey: !Sub ${AuthServiceApiSercretAccessKey}
+        SubnetId: !GetAtt VPC.Outputs.PublicSubnet
+        SecurityGroup: !GetAtt VPC.Outputs.SecurityGroup
+        BucketName: !GetAtt MCAnalytics.Outputs.BucketName
+
+  Security:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./resourses/cfn/security.yml
+      Parameters:
+        EnvName: !Sub ${EnvName}
+
+  API:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./resourses/api.yml
+      Parameters:
+        EnvName: !Sub ${EnvName}
+        AuthApiPath: !Sub ${AuthApiPath}
+        layer: !Ref CommonLayer
+        CloudWatchRoleArn: !GetAtt Security.Outputs.AppApiRoleArn
+        AcmArn: !Ref AppApiAcmArn
+
+  StreamApi:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./resourses/stream_api.yml
+      Parameters:
+        EnvName: !Sub ${EnvName}
+        AuthServiceApiPath: !Sub ${AuthServiceApiPath}
+        AuthServiceApiHost: !Sub ${AuthServiceApiHost}
+        AuthServiceApiAccessKey: !Sub ${AuthServiceApiAccessKey}
+        AuthServiceApiSercretAccessKey: !Sub ${AuthServiceApiSercretAccessKey}
+        layer: !Ref CommonLayer
+        CloudWatchRoleArn: !GetAtt Security.Outputs.AppApiRoleArn
+        NotifySource: !Ref NotifySource
+        StreamApiId: !Ref StreamApiId
+        StreamApiPw: !Ref StreamApiPw
+        AcmArn: !Ref StreamApiAcmArn
+
+  VPC:
+    Condition: NotFeature
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: "./resourses/cfn/VPC.yml"
+      Parameters:
+        EnvName: !Ref EnvName
+        VPCCidrBlock: 172.31.0.0/16
+        CidrIp: 0.0.0.0/0
+        MyIP: 0.0.0.0/0
