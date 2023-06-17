@@ -70,11 +70,11 @@ jobs:
         with:
           version: 1.59.0
 
-      - name: make swagger
-        run: |
-          npm install -g @apidevtools/swagger-cli
-          swagger-cli bundle ./resourses/app_api/swagger/openapi.yaml -r --outfile openapi.yaml --type yaml
-          swagger-cli bundle ./resourses/stream_api/swagger/openapi.yaml -r --outfile stream_openapi.yaml --type yaml
+      # - name: make swagger
+      #   run: |
+      #     npm install -g @apidevtools/swagger-cli
+      #     swagger-cli bundle ./resourses/app_api/swagger/openapi.yaml -r --outfile openapi.yaml --type yaml
+      #     swagger-cli bundle ./resourses/stream_api/swagger/openapi.yaml -r --outfile stream_openapi.yaml --type yaml
 
       #AWS環境への認証
       - name: aws configure
