@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Creating streaming app basic backend environment.
+Parameters:
+  EnvName:
+    Description: "Your environment name here"
+    Type: String
+    Default: defalt
+  # layer:
+  #   Description: "lambda layer"
+  #   Type: String
+  #   Default: ""
+
+Globals:
+  Function:
+    Timeout: 20
+    Runtime: python3.9
+    MemorySize: 512
+    CodeUri: ../../src
+    Environment:
+      Variables:
+        agg_table: !Sub "llm-table"
+    # Layers:
+    #   - !Ref layer
+  Api:
+    OpenApiVersion: 3.0.2
+
+Resources:
+  # StreamDataBucket:
+  #   Type: AWS::S3::Bucket
+  #   Properties:
+  #     BucketName: !Sub "stream-data-attribute-${EnvName}"
+  #     PublicAccessBlockConfiguration:
+  #       BlockPublicAcls: true
+  #       BlockPublicPolicy: true
+  #       IgnorePublicAcls: true
+  #       RestrictPublicBuckets: true
+
+  DynamoDB:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "llm-table"
+      AttributeDefinitions:
+        - AttributeName: uuid
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: uuid
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+
+  S3ToDynamoDB:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "llm-test"
+      Handler: llm.app.llm.lambda_handler
+      Events:
+        PutEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref StreamDataBucket
+            Events: s3:ObjectCreated:Put
+      Policies:
+        - AmazonS3FullAccess
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
