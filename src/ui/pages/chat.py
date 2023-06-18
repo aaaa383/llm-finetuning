@@ -26,7 +26,9 @@ with st.form("メッセージを入力して下さい"):
       if user_message.strip() == '' or st.session_state.name.strip() == '':
         st.warning("送信ボタンを押す前にメッセージと名前を入力して下さい")
       else:
-        api_endpoint = 'https://f60k53r180.execute-api.ap-northeast-1.amazonaws.com/test/chat'
+
+        # API Gatewayのパスを入れる
+        api_endpoint = 'https://wtm35xxg9l.execute-api.ap-northeast-1.amazonaws.com/test'
 
         # APIリクエストを送信します
         response = requests.post(api_endpoint, json={'message': user_message, 'name': st.session_state.name})

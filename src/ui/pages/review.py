@@ -21,8 +21,8 @@ st.session_state.name = st.text_input("ユーザー名を入力してくださ�
 
 if st.session_state.name:
     # GETリクエストでデータを取得
-    api_endpoint_get = 'https://f60k53r180.execute-api.ap-northeast-1.amazonaws.com/test/chat'  # ここを実際のGETエンドポイントに置き換えてください
-    response = requests.get(api_endpoint_get, params={'name': st.session_state.name})
+    api_endpoint = 'https://wtm35xxg9l.execute-api.ap-northeast-1.amazonaws.com/test'  
+    response = requests.get(api_endpoint, params={'name': st.session_state.name})
 
     if response.status_code == 200:
         # レスポンスを取得し、表示します
@@ -50,12 +50,11 @@ if st.session_state.name:
 
             # Submission button
             if st.button("提出"):
-                params = {'uuid': uuid}
+                put_url = api_endpoint + '/' + uuid
                 body = {'uuid': uuid, 'fix_response': str(st.session_state.review)}
 
                 # リクエストの送信
-                put_url = 'https://f60k53r180.execute-api.ap-northeast-1.amazonaws.com/test/chat' 
-                response = requests.put(put_url, params=params, data=json.dumps(body))
+                response = requests.put(put_url, data=json.dumps(body))
 
                 print('response',response)
 
