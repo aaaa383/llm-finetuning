@@ -21,7 +21,7 @@ st.session_state.name = st.text_input("ユーザー名を入力してくださ�
 
 if st.session_state.name:
     # GETリクエストでデータを取得
-    api_endpoint = 'https://wtm35xxg9l.execute-api.ap-northeast-1.amazonaws.com/test'  
+    api_endpoint = 'https://wtm35xxg9l.execute-api.ap-northeast-1.amazonaws.com/test/chat'  
     response = requests.get(api_endpoint, params={'name': st.session_state.name})
 
     if response.status_code == 200:

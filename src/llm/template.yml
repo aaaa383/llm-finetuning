@@ -11,7 +11,7 @@ Globals:
     CodeUri: ../../src
     Environment:
       Variables:
-        agg_table: !Sub "llm-chat-table"
+        table_name: !Sub "llm-chat-table"
   Api:
     OpenApiVersion: 3.0.2
 

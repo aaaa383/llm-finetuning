@@ -28,7 +28,7 @@ with st.form("メッセージを入力して下さい"):
       else:
 
         # API Gatewayのパスを入れる
-        api_endpoint = 'https://wtm35xxg9l.execute-api.ap-northeast-1.amazonaws.com/test'
+        api_endpoint = 'https://wtm35xxg9l.execute-api.ap-northeast-1.amazonaws.com/test/chat'
 
         # APIリクエストを送信します
         response = requests.post(api_endpoint, json={'message': user_message, 'name': st.session_state.name})
