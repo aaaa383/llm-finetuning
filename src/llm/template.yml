@@ -11,7 +11,7 @@ Globals:
     CodeUri: ../../src
     Environment:
       Variables:
-        agg_table: !Sub "llm-table"
+        agg_table: !Sub "llm-chat-table"
   Api:
     OpenApiVersion: 3.0.2
 
@@ -30,7 +30,7 @@ Resources:
   DynamoDB:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub "llm-table"
+      TableName: !Sub "llm-chat-table"
       AttributeDefinitions:
         - AttributeName: uuid
           AttributeType: S
