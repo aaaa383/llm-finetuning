@@ -2,40 +2,30 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Creating streaming app basic backend environment.
-Parameters:
-  EnvName:
-    Description: "Your environment name here"
-    Type: String
-    Default: defalt
-  # layer:
-  #   Description: "lambda layer"
-  #   Type: String
-  #   Default: ""
 
 Globals:
   Function:
-    Timeout: 20
+    Timeout: 60
     Runtime: python3.9
     MemorySize: 512
     CodeUri: ../../src
     Environment:
       Variables:
         agg_table: !Sub "llm-table"
-    # Layers:
-    #   - !Ref layer
   Api:
     OpenApiVersion: 3.0.2
 
 Resources:
-  # StreamDataBucket:
-  #   Type: AWS::S3::Bucket
-  #   Properties:
-  #     BucketName: !Sub "stream-data-attribute-${EnvName}"
-  #     PublicAccessBlockConfiguration:
-  #       BlockPublicAcls: true
-  #       BlockPublicPolicy: true
-  #       IgnorePublicAcls: true
-  #       RestrictPublicBuckets: true
+  LLMAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub "llm-chat-api"
+      StageName: 'test'
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: ./swagger.yml
 
   DynamoDB:
     Type: AWS::DynamoDB::Table
@@ -44,27 +34,101 @@ Resources:
       AttributeDefinitions:
         - AttributeName: uuid
           AttributeType: S
-        - AttributeName: timestamp
-          AttributeType: S
       KeySchema:
         - AttributeName: uuid
           KeyType: HASH
-        - AttributeName: timestamp
-          KeyType: RANGE
       BillingMode: PAY_PER_REQUEST
 
-  S3ToDynamoDB:
+  GetChat:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "llm-test"
-      Handler: llm.app.llm.lambda_handler
-      Events:
-        PutEvent:
-          Type: S3
-          Properties:
-            Bucket: !Ref StreamDataBucket
-            Events: s3:ObjectCreated:Put
+      FunctionName: !Sub "llm-get-chat"
+      Handler: llm.app.get_chat.lambda_handler
       Policies:
-        - AmazonS3FullAccess
         - AmazonDynamoDBFullAccess
+        - AWSLambdaDynamoDBExecutionRole
         - AWSLambdaBasicExecutionRole
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "secretsmanager:GetSecretValue"
+              Resource: "*"
+      Events:
+        API:
+          Type: Api
+          Properties:
+            Path: /version
+            Method: get
+            RestApiId: !Ref LLMAPI
+  
+  APIPermissionToGetChat:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GetChat
+      Principal: apigateway.amazonaws.com
+  
+
+  PostChat:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "llm-post-chat"
+      Handler: llm.app.post_chat.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AmazonSageMakerFullAccess
+        - AWSLambdaDynamoDBExecutionRole
+        - AWSLambdaBasicExecutionRole
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "secretsmanager:GetSecretValue"
+              Resource: "*"
+      Events:
+        API:
+          Type: Api
+          Properties:
+            Path: /version
+            Method: post
+            RestApiId: !Ref LLMAPI
+  
+  APIPermissionToPostChat:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PostChat
+      Principal: apigateway.amazonaws.com
+
+  PutChat:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "llm-put-chat"
+      Handler: llm.app.put_chat.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaDynamoDBExecutionRole
+        - AWSLambdaBasicExecutionRole
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "secretsmanager:GetSecretValue"
+              Resource: "*"
+      Events:
+        API:
+          Type: Api
+          Properties:
+            Path: /version
+            Method: put
+            RestApiId: !Ref LLMAPI
+  
+  APIPermissionToPutChat:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PutChat
+      Principal: apigateway.amazonaws.com
+
+  

@@ -33,7 +33,6 @@ with st.form("メッセージを入力して下さい"):
         
         # レスポンスを取得します
         response_data = json.loads(response.text)
-        print('aaaa',response_data)
         answer = response_data["body"]
 
         st.session_state.past.append(user_message)
