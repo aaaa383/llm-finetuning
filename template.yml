@@ -12,5 +12,5 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ./src/llm/template.yml
-      Parameters:
-        ApiPath: !Sub ${ApiPath}
+      # Parameters:
+      #   ApiPath: !Sub ${ApiPath}
