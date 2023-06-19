@@ -13,14 +13,16 @@ table = dynamodb.Table(os.environ["table_name"])
 
 def lambda_handler(event, context):
     
+    body = json.loads(event['body'])
+    
     # DynamoDBに保存
     table.put_item(
         Item={
             'uuid': str(uuid.uuid1()),
             'timestamp': str(time.time()),
-            'name': event['name'],
-            'userInput': event['message'],
-            'response': event['answer'],
+            'name': body['name'],
+            'userInput': body['message'],
+            'response': body['answer'],
             'fix_response': ''
         }
     )
@@ -30,3 +32,5 @@ def lambda_handler(event, context):
         'headers' : { 'Content-Type' : 'text/plain', 'Access-Control-Allow-Origin' : '*' },
         'body' : event['answer']
     }
+
+

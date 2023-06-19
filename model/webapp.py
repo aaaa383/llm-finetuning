@@ -9,7 +9,7 @@ from peft import PeftModel, PeftConfig
 
 
 model_path = "cyberagent/open-calm-7b"
-base_llm = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto")
+base_llm = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto",offload_folder="./offload")
 # torch_dtype=torch.float16
 tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=False)
 model1 = PeftModel.from_pretrained(base_llm, './instructionTune')
