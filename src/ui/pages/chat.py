@@ -6,7 +6,7 @@ from streamlit_chat import message
 import openai
 
 # openAI版
-openai.api_key = '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'
+openai.api_key = ''
 
 # ローカルでモデルを読み込む場合(Macで動かない)
 import torch
