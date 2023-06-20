@@ -7,16 +7,14 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import get_peft_model, LoraConfig, TaskType
 from peft import PeftModel, PeftConfig
 
-
 model_path = "rinna/japanese-gpt-neox-3.6b"
 # cyberagent/open-calm-7b
 base_llm = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto")
 # torch_dtype=torch.float16
 tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=False)
-model1 = PeftModel.from_pretrained(base_llm, 'lora-rinna-3.6b-sakura_dataset-results')
+model1 = PeftModel.from_pretrained(base_llm, '../model/lora-rinna-3.6b-sakura_dataset')
 # torch_dtype=torch.float16
 # model1.half()
-
 
 # プロンプトテンプレートの準備
 def generate_prompt(data_point):
@@ -126,7 +124,6 @@ def fn1(instruction):
     return generate(instruction,input=None,maxTokens=256)
 
 
-
 examples = [
     ["日本の観光名所を3つ挙げて。"],
     ["データサイエンティストに必要なスキルを5つ挙げて。"],
@@ -145,15 +142,13 @@ demo1= gr.Interface(
 demo = gr.Parallel(
     demo1,
     examples=examples,
-    title="CyberAgent Open-CALM-7b-lora-instruction-tuning",
+    title="CyberAgent rinna-lora-instruction-tuning",
     description="""
         LoRAのチューニング方法
         """,)
 
 # share=Trueで外部に公開される。
 demo.launch(server_name="0.0.0.0", share=True)
-
-
 
 # def greet(name):
 #     return "Hello " + name + "!!"
