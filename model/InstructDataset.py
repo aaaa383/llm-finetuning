@@ -11,7 +11,7 @@ class instructDataset(Dataset):
         self.tokenizer = tokenizer
         self.prompt_dict = prompt_dict
     
-        print(f'PROMPT_DICT: {prompt_dict}')
+        # print(f'PROMPT_DICT: {prompt_dict}')
         example_texts = []
         for j in json_list:
             # open_qaなど文脈情報が必要ない場合はinputカラムがないため、inputカラムありなしでテンプレート文を分けている。
