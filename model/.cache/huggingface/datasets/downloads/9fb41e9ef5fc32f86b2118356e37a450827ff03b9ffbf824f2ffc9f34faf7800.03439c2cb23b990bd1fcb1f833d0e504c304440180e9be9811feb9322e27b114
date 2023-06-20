@@ -1,0 +1,13 @@
+---
+license: cc-by-sa-3.0
+---
+
+This dataset was created by automatically translating "databricks-dolly-15k" into Japanese.  
+This dataset is licensed under CC BY SA 3.0
+
+Last Update : 2023-05-11
+
+databricks-dolly-15k-ja  
+https://github.com/kunishou/databricks-dolly-15k-ja  
+databricks-dolly-15k  
+https://github.com/databrickslabs/dolly/tree/master/data
